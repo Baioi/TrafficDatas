@@ -1,4 +1,4 @@
-# TrafficDatas（基于比利时交通标志数据集http://btsd.ethz.ch/shareddata/）
+# TrafficDatas（基于比利时交通标志数据集http://btsd.ethz.ch/shareddata/ ）
 ## 功能：
 - 统计数量（设置main函数中COUNT为1）
 - 转换图片格式jp2->jpg
