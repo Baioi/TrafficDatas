@@ -4,6 +4,8 @@ import os
 import glymur
 import shutil
 import random
+import math
+import string
 from create_Annotations import *
 from PIL import Image
 def getFileList(filepath):
@@ -118,7 +120,7 @@ if __name__ == '__main__':
     ValidListFiltered = ['C43', 'D7', 'C1', 'B1', 'B9', 'D1b_rechts_onder', 'D9', 'F29', 'E1', 'B15A', 'A23', 'F4a', 'F19', 'D1b', 'B17', 'E9b', 'C3', 'F45', 'E3', 'E9a', 'C35', 'A14', 'A51', 'D5', 'F49', 'F50', 'F23A', 'F3a_h']
     
     '''---------------TRANSLATE制作XML----------------'''
-    TRANSLATE = 0
+    TRANSLATE = 1
     # _IMAGE_PATH = FilterImageOutPath1
     _IMAGE_PATH = FilterImageOutPath2
     # _TXT_PATH = TXTOutPath1
@@ -127,24 +129,22 @@ if __name__ == '__main__':
     _ANNOTATION_SAVE_PATH = 'Annotations2'
 
     '''-----------------制作ImageSets-----------------'''
-    IMAGESETS = 1
-    _IMAGE_SETS_PATH = 'ImageSets1'
-    # _IMAGE_SETS_PATH = 'ImageSets2'
-    _MAin_PATH = 'ImageSets1\\Main'
-    # _MAin_PATH = 'ImageSets2\\Main'
-    _XML_FILE_PATH = 'Annotations1'
-    # _XML_FILE_PATH = 'Annotations2'
+    IMAGESETS = 0
+    # _IMAGE_SETS_PATH = 'ImageSets1'
+    _IMAGE_SETS_PATH = 'ImageSets2'
+    # _MAin_PATH = 'ImageSets1\\Main'
+    _MAin_PATH = 'ImageSets2\\Main'
+    # _XML_FILE_PATH = 'Annotations1'
+    _XML_FILE_PATH = 'Annotations2'
 
     '''-----------------DetailedImageSets-------------'''
-    DETAIL = 1
-    _VALID_LIST = ValidList
-    # _VALID_LIST = ValidListFiltered
-    _TXT_PATH = TXTOutPath1
-    # _TXT_PATH = TXTOutPath2
-    _MAin_PATH = 'ImageSets1\\Main'
-    # _MAin_PATH = 'ImageSets2\\Main'
-    _XML_FILE_PATH = 'Annotations1'
-    # _XML_FILE_PATH = 'Annotations2'
+    DETAIL = 0
+    # _VALID_LIST = ValidList
+    _VALID_LIST = ValidListFiltered
+    # _MAin_PATH = 'ImageSets1\\Main'
+    _MAin_PATH = 'ImageSets2\\Main'
+    # _XML_FILE_PATH = 'Annotations1'
+    _XML_FILE_PATH = 'Annotations2'
 
 
     # 统计
@@ -196,10 +196,12 @@ if __name__ == '__main__':
             attrs = dict()
             attrs['name'] = array[0]
             attrs['classification'] = array[11]
-            attrs['xmin'] = array[1]
-            attrs['ymin'] = array[2]
-            attrs['xmax'] = array[3]
-            attrs['ymax'] = array[4]
+            attrs['xmin'] = math.ceil(string.atof(array[1]))
+            attrs['ymin'] = math.ceil(string.atof(array[2]))
+            attrs['xmax'] = math.ceil(string.atof(array[3]))
+            attrs['ymax'] = math.ceil(string.atof(array[4]))
+            if float(attrs['ymax']) - float(attrs['ymin']) <= 10 or float(attrs['xmax']) - float(attrs['xmin']) <= 10:
+                print('疑似大小错误:' + attrs['name'] + ' ' + attrs['classification'])
 
             # 构建XML文件名称
             xml_file_name = os.path.join(_ANNOTATION_SAVE_PATH, (attrs['name'].split('.'))[0] + '.xml')
@@ -209,7 +211,22 @@ if __name__ == '__main__':
                 # print('do exists')
                 existed_doc = xml.dom.minidom.parse(xml_file_name)
                 root_node = existed_doc.documentElement
-            
+                width = root_node.getElementsByTagName('width')[0].firstChild.data
+                height = root_node.getElementsByTagName('height')[0].firstChild.data
+                height = string.atoi(height)
+                width = string.atoi(width)
+                if attrs['ymax'] >= height:
+                    attrs['ymax'] = height - 1
+                if attrs['xmax'] >= width:
+                    attrs['xmax'] = width - 1
+                if attrs['ymin'] <= 0:
+                    attrs['ymin'] = 1
+                if attrs['xmin'] <= 0:
+                    attrs['xmin'] = 1
+                attrs['ymax'] = str(attrs['ymax'])
+                attrs['xmax'] = str(attrs['xmax'])
+                attrs['ymin'] = str(attrs['ymin'])
+                attrs['xmin'] = str(attrs['xmin'])
                 # 如果XML存在了, 添加object节点信息即可
                 object_node = createObjectNode(existed_doc, attrs)
                 root_node.appendChild(object_node)
@@ -226,7 +243,18 @@ if __name__ == '__main__':
                 img = Image.open(img_path)
                 width, height = img.size
                 img.close()
-            
+                if attrs['ymax'] >= height:
+                    attrs['ymax'] = height - 1
+                if attrs['xmax'] >= width:
+                    attrs['xmax'] = width - 1
+                if attrs['ymin'] <= 0:
+                    attrs['ymin'] = 1
+                if attrs['xmin'] <= 0:
+                    attrs['xmin'] = 1
+                attrs['ymax'] = str(attrs['ymax'])
+                attrs['xmax'] = str(attrs['xmax'])
+                attrs['ymin'] = str(attrs['ymin'])
+                attrs['xmin'] = str(attrs['xmin'])
                 # 创建XML文件
                 createXMLFile(attrs, width, height, xml_file_name)
 
