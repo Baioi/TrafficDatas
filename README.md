@@ -6,3 +6,5 @@
 - 制作XML（Pascal VOC格式）
 - 制作ImageSets/Layout中的test.txt和trainval.txt（Pascal VOC格式）
 - 制作ImageSets/Main中的\*_test.txt和\*_trainval.txt（Pascal VOC格式）
+- 在trainval.txt的基础上进一步划分train.txt和val.txt
+- *_train.txt和*_val.txt待做，不过看格式貌似不需要？？？有需要的时候再做
