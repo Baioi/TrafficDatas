@@ -1,18 +1,20 @@
-import cv2
+# -*- coding:utf-8 -*-
+# import cv2
 import csv
 import os
-import glymur
+# import glymur
 import shutil
 import random
 import math
 import string
-from create_Annotations import *
-from PIL import Image
+# from create_Annotations import *
+# from PIL import Image
 def getFileList(filepath):
     f = open(filepath, 'r')
     lines = f.readlines()
     f.close()
     return lines
+
 # 用来统计以及输出
 def count(list, outpath):
     f = open(outpath, 'w')
@@ -92,7 +94,6 @@ def filter(path, outpath, list, imgpath):
 
 if __name__ == '__main__':
     
-    
     '''-------------------------COUNT初步统计各标志的个数-------------------------'''
     COUNT = 0
     AnnoTestPath = './BelgiumTSD_annotations/BTSD_testing_GT.txt'
@@ -120,7 +121,7 @@ if __name__ == '__main__':
     ValidListFiltered = ['C43', 'D7', 'C1', 'B1', 'B9', 'D1b_rechts_onder', 'D9', 'F29', 'E1', 'B15A', 'A23', 'F4a', 'F19', 'D1b', 'B17', 'E9b', 'C3', 'F45', 'E3', 'E9a', 'C35', 'A14', 'A51', 'D5', 'F49', 'F50', 'F23A', 'F3a_h']
     
     '''---------------TRANSLATE制作XML----------------'''
-    TRANSLATE = 1
+    TRANSLATE = 0
     # _IMAGE_PATH = FilterImageOutPath1
     _IMAGE_PATH = FilterImageOutPath2
     # _TXT_PATH = TXTOutPath1
@@ -129,23 +130,24 @@ if __name__ == '__main__':
     _ANNOTATION_SAVE_PATH = 'Annotations2'
 
     '''-----------------制作ImageSets-----------------'''
-    IMAGESETS = 0
-    # _IMAGE_SETS_PATH = 'ImageSets1'
-    _IMAGE_SETS_PATH = 'ImageSets2'
     # _MAin_PATH = 'ImageSets1\\Main'
     _MAin_PATH = 'ImageSets2\\Main'
     # _XML_FILE_PATH = 'Annotations1'
     _XML_FILE_PATH = 'Annotations2'
+
+    '''-----------------trainval.txt, test.txt-----------------'''
+    IMAGESETS = 0
+    # _IMAGE_SETS_PATH = 'ImageSets1'
+    _IMAGE_SETS_PATH = 'ImageSets2'
 
     '''-----------------DetailedImageSets-------------'''
     DETAIL = 0
     # _VALID_LIST = ValidList
     _VALID_LIST = ValidListFiltered
-    # _MAin_PATH = 'ImageSets1\\Main'
-    _MAin_PATH = 'ImageSets2\\Main'
-    # _XML_FILE_PATH = 'Annotations1'
-    _XML_FILE_PATH = 'Annotations2'
+    
 
+    '''----------------根据TrainVal.txt分别制作Train、Val的ImageSets----------------'''
+    MAKEVAL = 1
 
     # 统计
     if COUNT == 1:
@@ -257,6 +259,7 @@ if __name__ == '__main__':
                 attrs['xmin'] = str(attrs['xmin'])
                 # 创建XML文件
                 createXMLFile(attrs, width, height, xml_file_name)
+        ouput_file.close()
 
     if IMAGESETS == 1:
         if os.path.exists(_IMAGE_SETS_PATH):
@@ -284,6 +287,7 @@ if __name__ == '__main__':
         f_test.close()
         f_train.close()
 
+    
     if DETAIL == 1:
         f_test = open(os.path.join(_MAin_PATH, 'test.txt'), 'r')
         f_train = open(os.path.join(_MAin_PATH, 'trainval.txt'), 'r')
@@ -320,6 +324,10 @@ if __name__ == '__main__':
                     detailedtestfile.write(term + ' 1\n')
                 else:
                     detailedtestfile.write(term + ' -1\n')
+            detailedtestfile.close()
+            detailedtrainfile.close()
+            f_test.close()
+            f_train.close()
                 
             for term in trainlist:
                 #打开XML文件
@@ -337,5 +345,18 @@ if __name__ == '__main__':
                     detailedtrainfile.write(term + ' 1\n')
                 else:
                     detailedtrainfile.write(term + ' -1\n')
+    if MAKEVAL == 1:
+        f = open(os.path.join(_MAin_PATH, 'trainval.txt'), 'r')
+        val_out = open(os.path.join(_MAin_PATH, 'val.txt'), 'w')
+        train_out = open(os.path.join(_MAin_PATH, 'train.txt'), 'w')
+        lines = f.readlines()
+        val = random.sample(lines, len(lines)/3)
+        for val_file in val:
+            val_out.write(val_file)
+        train = [train for train in lines if not train in val]
+        for train_file in train:
+            train_out.write(train_file)
+        f.close()
+        val_out.close()
+        train_out.close()
 
-        
